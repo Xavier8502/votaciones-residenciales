@@ -1,0 +1,138 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Inmuebles</h1>
+      <p class="page-subtitle">Gestión de inventario inmobiliario del conjunto actual.</p>
+    </div>
+
+    <div class="toolbar">
+      <label class="field-label" for="tipoFiltro">Tipo</label>
+      <select
+        id="tipoFiltro"
+        class="app-select"
+        [value]="filterTipo() ?? ''"
+        (change)="setFilterTipo(($any($event.target)).value)"
+      >
+        <option value="">Todos</option>
+        @for (item of tipoOptions; track item.value) {
+          <option [value]="item.value">{{ item.label }}</option>
+        }
+      </select>
+      <button class="app-button ghost" type="button" (click)="load()">
+        <svg lucideRefreshCw size="16"></svg>
+        Recargar
+      </button>
+      <button class="app-button primary" type="button" (click)="startCreate()">
+        <svg lucideCirclePlus size="16"></svg>
+        Nuevo inmueble
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  <section class="split-view">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Listado</h2>
+          <p class="page-subtitle">Explora inmuebles y selecciona uno para editar su configuración.</p>
+        </div>
+        <span class="status-chip">{{ items().length }} visibles</span>
+      </div>
+
+      <div class="panel-body tight">
+        @if (loading()) {
+          <div class="empty-state">Cargando inmuebles...</div>
+        } @else if (items().length) {
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Tipo</th>
+                  <th>Coeficiente</th>
+                  <th>Residentes</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items(); track item.id) {
+                  <tr>
+                    <td>
+                      <button class="row-action" type="button" (click)="select(item)">
+                        <p class="entity-name">{{ item.numero }}</p>
+                        <p class="entity-meta">Torre {{ item.torre || '-' }} · Piso {{ item.piso || '-' }}</p>
+                      </button>
+                    </td>
+                    <td>{{ item.tipo }}</td>
+                    <td>{{ item.coeficiente | number: '1.0-2' }}</td>
+                    <td>{{ item.totalResidentes }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">No hay inmuebles para el filtro actual.</div>
+        }
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">{{ createMode() ? 'Nuevo inmueble' : 'Editar inmueble' }}</h2>
+          <p class="page-subtitle">
+            {{ createMode() ? 'Crear unidad con tipo y coeficiente.' : 'Ajustar atributos del inmueble.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="save()">
+          <div class="field-group">
+            <label class="field-label" for="numero">Número</label>
+            <input id="numero" class="app-input" type="text" formControlName="numero" />
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="tipo">Tipo</label>
+              <select id="tipo" class="app-select" formControlName="tipo">
+                @for (item of tipoOptions; track item.value) {
+                  <option [value]="item.value">{{ item.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="coeficiente">Coeficiente</label>
+              <input id="coeficiente" class="app-input" type="number" step="0.1" formControlName="coeficiente" />
+            </div>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="torre">Torre</label>
+              <input id="torre" class="app-input" type="text" formControlName="torre" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="piso">Piso</label>
+              <input id="piso" class="app-input" type="text" formControlName="piso" />
+            </div>
+          </div>
+
+          <button class="app-button primary" type="submit" [disabled]="saving()">
+            <svg lucideSave size="16"></svg>
+            {{ saving() ? 'Guardando...' : createMode() ? 'Crear inmueble' : 'Guardar cambios' }}
+          </button>
+        </form>
+      </div>
+    </article>
+  </section>
+</div>

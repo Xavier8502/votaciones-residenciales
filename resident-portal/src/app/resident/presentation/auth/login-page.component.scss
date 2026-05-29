@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.login-layout {
+  min-height: 100vh;
+  padding: 24px 18px;
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.login-points {
+  display: grid;
+  gap: 12px;
+}
+
+.login-point {
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+}
+
+.login-point p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+}
+
+@media (min-width: 920px) {
+  .login-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.8fr);
+    padding: 32px;
+  }
+}

@@ -1,0 +1,82 @@
+<div class="admin-shell" [class.compact]="compact()">
+  <aside class="admin-sidebar panel">
+    <div class="sidebar-top">
+      <button
+        class="app-icon-button"
+        type="button"
+        (click)="toggleSidebar()"
+        aria-label="Alternar navegación"
+      >
+        <svg lucidePanelLeft size="18"></svg>
+      </button>
+
+      <div class="brand-block" [class.hidden]="compact()">
+        <span class="status-chip" data-tone="primary">
+          <svg lucideBadgeCheck size="14"></svg>
+          Admin
+        </span>
+        <strong>Votaciones Residenciales</strong>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (item of navigation; track item.route) {
+        <a
+          class="app-nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          @switch (item.icon) {
+            @case ('dashboard') {
+              <svg lucideLayoutDashboard size="18"></svg>
+            }
+            @case ('conjuntos') {
+              <svg lucideBuilding2 size="18"></svg>
+            }
+            @case ('inmuebles') {
+              <svg lucideHouse size="18"></svg>
+            }
+            @case ('residentes') {
+              <svg lucideUsers size="18"></svg>
+            }
+            @case ('votaciones') {
+              <svg lucideVote size="18"></svg>
+            }
+          }
+          <span [class.hidden]="compact()">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer" [class.compact]="compact()">
+      <div class="sidebar-session">
+        <p>{{ displayName() }}</p>
+        <span>Rol {{ session()?.rol }}</span>
+      </div>
+
+      <button class="app-button ghost" type="button" (click)="logout()">
+        <svg lucideLogOut size="16"></svg>
+        <span [class.hidden]="compact()">Salir</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <header class="admin-topbar">
+      <div>
+        <strong>Operación administrativa</strong>
+        <p class="muted">Control centralizado de conjuntos, residentes, inmuebles y votaciones.</p>
+      </div>
+
+      <div class="status-chip" data-tone="support">
+        <svg lucideDoorOpen size="14"></svg>
+        Sesión activa
+      </div>
+    </header>
+
+    <section class="admin-content">
+      <router-outlet />
+    </section>
+  </main>
+</div>

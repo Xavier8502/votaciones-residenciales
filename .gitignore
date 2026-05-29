@@ -1,0 +1,28 @@
+# Visual Studio / .NET
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and temp files
+*.log
+tmp-*
+src/API/logs/
+
+# Local configuration overrides
+**/appsettings.Local.json
+**/appsettings.*.local.json
+VotacionesResidenciales.slnLaunch.user
+
+# Node / Angular
+**/node_modules/
+**/.angular/
+**/dist/
+**/coverage/
+
+# OS
+.DS_Store
+Thumbs.db

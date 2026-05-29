@@ -1,0 +1,88 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Mis votaciones</h1>
+      <p class="page-subtitle">
+        Entra a las abiertas para votar y usa las cerradas para revisar como termino cada proceso.
+      </p>
+    </div>
+
+    <button class="app-button ghost" type="button" (click)="load()">
+      <svg lucideRefreshCw size="16"></svg>
+      Recargar
+    </button>
+  </header>
+
+  <div class="toolbar">
+    @for (filter of filters; track filter.id) {
+      <button
+        class="filter-chip"
+        [class.active]="activeFilter() === filter.id"
+        type="button"
+        (click)="setFilter(filter.id)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="panel">
+      <div class="empty-state">Cargando procesos...</div>
+    </div>
+  } @else if (filtered().length) {
+    <section class="vote-list">
+      @for (item of filtered(); track item.id) {
+        <article class="vote-card" [attr.data-state]="item.estado">
+          <div class="vote-card-header">
+            <div>
+              <h2 class="vote-title">{{ item.titulo }}</h2>
+              <p class="vote-meta">{{ item.descripcion || 'Sin descripcion adicional.' }}</p>
+            </div>
+            <span class="status-chip" [attr.data-tone]="item.estado === 'Abierta' ? 'primary' : 'accent'">
+              {{ item.estado }}
+            </span>
+          </div>
+
+          <div class="vote-grid">
+            <div class="vote-stat">
+              <span>Preguntas</span>
+              <strong>{{ item.totalPreguntas }}</strong>
+            </div>
+            <div class="vote-stat">
+              <span>Quorum</span>
+              <strong>{{ item.quorumRequerido }}%</strong>
+            </div>
+            <div class="vote-stat">
+              <span>Inicio</span>
+              <strong>{{ item.fechaInicio | date: 'shortDate' }}</strong>
+            </div>
+            <div class="vote-stat">
+              <span>Cierre</span>
+              <strong>{{ item.fechaFin | date: 'short' }}</strong>
+            </div>
+          </div>
+
+          <div class="vote-card-footer">
+            <span class="help-text">{{ item.tipoPeso }}</span>
+            <a class="app-button ghost" [routerLink]="['/app/votaciones', item.id]">
+              <svg lucideArrowRight size="16"></svg>
+              Abrir
+            </a>
+          </div>
+        </article>
+      }
+    </section>
+  } @else {
+    <div class="panel">
+      <div class="empty-state">
+        <strong>No hay votaciones para este filtro.</strong>
+        Cambia la vista o vuelve a recargar mas tarde.
+      </div>
+    </div>
+  }
+</div>

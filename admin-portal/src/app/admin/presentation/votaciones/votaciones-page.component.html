@@ -1,0 +1,310 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Votaciones</h1>
+      <p class="page-subtitle">Configuracion de procesos, apertura, cierre y lectura de resultados.</p>
+    </div>
+
+    <div class="toolbar">
+      <label class="field-label" for="estadoFiltro">Estado</label>
+      <select
+        id="estadoFiltro"
+        class="app-select"
+        [value]="estado() ?? ''"
+        (change)="setEstado(($any($event.target)).value)"
+      >
+        <option value="">Todas</option>
+        @for (item of estadoOptions; track item.value) {
+          <option [value]="item.value">{{ item.label }}</option>
+        }
+      </select>
+      <button class="app-button ghost" type="button" (click)="load()">
+        <svg lucideRefreshCw size="16"></svg>
+        Recargar
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  <section class="split-view">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Listado y detalle</h2>
+          <p class="page-subtitle">Selecciona una votacion para ver preguntas y resultados.</p>
+        </div>
+        <span class="status-chip">{{ votaciones().length }} procesos</span>
+      </div>
+
+      <div class="panel-body stack">
+        @if (loading()) {
+          <div class="empty-state">Cargando votaciones...</div>
+        } @else if (votaciones().length) {
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Titulo</th>
+                  <th>Estado</th>
+                  <th>Quorum</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of votaciones(); track item.id) {
+                  <tr>
+                    <td>
+                      <button class="row-action" type="button" (click)="select(item)">
+                        <p class="entity-name">{{ item.titulo }}</p>
+                        <p class="entity-meta">{{ item.fechaInicio | date: 'short' }}</p>
+                      </button>
+                    </td>
+                    <td>{{ item.estado }}</td>
+                    <td>{{ item.quorumRequerido }}%</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">No hay votaciones disponibles.</div>
+        }
+
+        @if (selected()) {
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">{{ selected()!.titulo }}</h3>
+                <p class="page-subtitle">{{ selected()!.estado }} · {{ selected()!.tipoPeso }}</p>
+              </div>
+              <div class="toolbar">
+                @if (selected()!.estado === 'Borrador') {
+                  <button class="app-button accent" type="button" (click)="abrirSeleccionada()" [disabled]="actioning()">
+                    <svg lucidePlay size="16"></svg>
+                    Abrir
+                  </button>
+                }
+                @if (selected()!.estado === 'Abierta') {
+                  <button class="app-button danger" type="button" (click)="cerrarSeleccionada()" [disabled]="actioning()">
+                    <svg lucideSquare size="16"></svg>
+                    Cerrar
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="panel-body stack">
+              <div class="detail-list">
+                <div class="detail-row">
+                  <span class="detail-label">Descripcion</span>
+                  <span class="detail-value">{{ selected()!.descripcion || 'Sin descripcion' }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Ventana</span>
+                  <span class="detail-value">
+                    {{ selected()!.fechaInicio | date: 'short' }} - {{ selected()!.fechaFin | date: 'short' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="stack">
+                <strong>Preguntas</strong>
+                @for (pregunta of selected()!.preguntas; track pregunta.id) {
+                  <div class="question-block">
+                    <strong>{{ pregunta.orden }}. {{ pregunta.texto }}</strong>
+                    <ul class="muted">
+                      @for (opcion of pregunta.opciones; track opcion.id) {
+                        <li>{{ opcion.texto }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+
+              @if (resultsError()) {
+                <div class="status-banner error">{{ resultsError() }}</div>
+              } @else if (resultados()) {
+                <div class="stack">
+                  <div class="results-header">
+                    <strong>Resultados</strong>
+                    <div class="toolbar">
+                      <span class="status-chip" [attr.data-tone]="resultados()!.quorumAlcanzado ? 'success' : 'accent'">
+                        {{ resultados()!.quorumAlcanzado ? 'Quorum alcanzado' : 'Quorum pendiente' }}
+                      </span>
+                      <span class="status-chip" data-tone="success">
+                        Participacion {{ resultados()!.porcentajeParticipacion | number: '1.0-2' }}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="metric-grid results-metrics">
+                    <div class="metric-tile" data-tone="primary">
+                      <span class="metric-label">Votos emitidos</span>
+                      <strong class="metric-value">{{ resultados()!.totalVotos }}</strong>
+                      <span class="metric-note">Total consolidado del proceso</span>
+                    </div>
+
+                    <div class="metric-tile" data-tone="accent">
+                      <span class="metric-label">Participacion</span>
+                      <strong class="metric-value">{{ resultados()!.porcentajeParticipacion | number: '1.0-1' }}%</strong>
+                      <span class="metric-note">Corte actual de propietarios votantes</span>
+                    </div>
+
+                    <div class="metric-tile" data-tone="support">
+                      <span class="metric-label">Quorum</span>
+                      <strong class="metric-value">{{ resultados()!.quorumAlcanzado ? 'Si' : 'No' }}</strong>
+                      <span class="metric-note">Validacion frente al umbral configurado</span>
+                    </div>
+
+                    <div class="metric-tile">
+                      <span class="metric-label">Preguntas</span>
+                      <strong class="metric-value">{{ resultados()!.preguntas.length }}</strong>
+                      <span class="metric-note">Bloques con lectura comparativa</span>
+                    </div>
+                  </div>
+
+                  @for (pregunta of resultados()!.preguntas; track pregunta.preguntaId) {
+                    <div class="question-block results-question">
+                      <div class="results-question-header">
+                        <div>
+                          <strong>{{ pregunta.texto }}</strong>
+                          <p class="results-question-note">{{ leadingOptionText(pregunta) }}</p>
+                        </div>
+                        <span class="status-chip">{{ pregunta.opciones.length }} opciones</span>
+                      </div>
+
+                      <div class="results-chart">
+                        @for (opcion of pregunta.opciones; track opcion.opcionId; let optionIndex = $index) {
+                          <div class="result-row">
+                            <div class="result-row-top">
+                              <div class="result-option-copy">
+                                <span class="result-option-name">{{ opcion.texto }}</span>
+                                <span class="result-option-meta">{{ opcion.totalVotos }} votos</span>
+                              </div>
+                              <strong class="result-option-percent">
+                                {{ opcion.porcentajeVotos | number: '1.0-2' }}%
+                              </strong>
+                            </div>
+
+                            <div class="result-bar-track">
+                              <div class="result-bar-fill" [ngStyle]="optionBarStyle(optionIndex, opcion.porcentajeVotos)"></div>
+                            </div>
+
+                            <div class="result-row-bottom">
+                              <span>Peso acumulado {{ opcion.pesoTotal | number: '1.0-2' }}</span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Nueva votacion</h2>
+          <p class="page-subtitle">Crea el proceso con preguntas y opciones desde esta misma vista.</p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="save()">
+          <div class="field-group">
+            <label class="field-label" for="titulo">Titulo</label>
+            <input id="titulo" class="app-input" type="text" formControlName="titulo" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="descripcion">Descripcion</label>
+            <textarea id="descripcion" class="app-textarea" formControlName="descripcion"></textarea>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="tipoPeso">Peso del voto</label>
+              <select id="tipoPeso" class="app-select" formControlName="tipoPeso">
+                @for (item of tipoPesoOptions; track item.value) {
+                  <option [value]="item.value">{{ item.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="quorum">Quorum requerido</label>
+              <input id="quorum" class="app-input" type="number" formControlName="quorumRequerido" />
+            </div>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="fechaInicio">Fecha inicio</label>
+              <input id="fechaInicio" class="app-input" type="datetime-local" formControlName="fechaInicio" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="fechaFin">Fecha fin</label>
+              <input id="fechaFin" class="app-input" type="datetime-local" formControlName="fechaFin" />
+            </div>
+          </div>
+
+          <label class="status-chip">
+            <input type="checkbox" formControlName="mostrarResultadosParciales" />
+            Mostrar resultados parciales
+          </label>
+
+          <div class="stack" formArrayName="preguntas">
+            @for (pregunta of preguntas.controls; track $index; let i = $index) {
+              <div class="question-block" [formGroupName]="i">
+                <div class="toolbar">
+                  <strong>Pregunta {{ i + 1 }}</strong>
+                  <button class="app-button ghost" type="button" (click)="removeQuestion(i)">Quitar</button>
+                </div>
+
+                <div class="field-group">
+                  <label class="field-label">Texto</label>
+                  <input class="app-input" type="text" formControlName="texto" />
+                </div>
+
+                <div class="stack" formArrayName="opciones">
+                  @for (opcion of optionsAt(i).controls; track $index; let j = $index) {
+                    <div class="option-row" [formGroupName]="j">
+                      <input class="app-input" type="text" formControlName="texto" />
+                      <button class="app-icon-button" type="button" (click)="removeOption(i, j)">-</button>
+                    </div>
+                  }
+                </div>
+
+                <button class="app-button ghost" type="button" (click)="addOption(i)">
+                  <svg lucideCirclePlus size="16"></svg>
+                  Anadir opcion
+                </button>
+              </div>
+            }
+          </div>
+
+          <button class="app-button ghost" type="button" (click)="addQuestion()">
+            <svg lucideCirclePlus size="16"></svg>
+            Anadir pregunta
+          </button>
+
+          <button class="app-button primary" type="submit" [disabled]="saving()">
+            <svg lucideSave size="16"></svg>
+            {{ saving() ? 'Guardando...' : 'Crear votacion' }}
+          </button>
+        </form>
+      </div>
+    </article>
+  </section>
+</div>

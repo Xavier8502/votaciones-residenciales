@@ -1,0 +1,150 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Residentes</h1>
+      <p class="page-subtitle">Alta de residentes y monitoreo de su pertenencia al conjunto.</p>
+    </div>
+
+    <div class="toolbar">
+      <label class="field-label" for="filtroPropietarios">Filtro</label>
+      <select
+        id="filtroPropietarios"
+        class="app-select"
+        [value]="soloPropietarios() === null ? '' : soloPropietarios()"
+        (change)="setFilter(($any($event.target)).value)"
+      >
+        <option value="">Todos</option>
+        <option value="true">Solo propietarios</option>
+        <option value="false">Solo residentes no propietarios</option>
+      </select>
+      <button class="app-button ghost" type="button" (click)="load()">
+        <svg lucideRefreshCw size="16"></svg>
+        Recargar
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  <section class="split-view">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Listado</h2>
+          <p class="page-subtitle">Panorama del padrón actual del conjunto.</p>
+        </div>
+        <span class="status-chip">{{ residentes().length }} personas</span>
+      </div>
+
+      <div class="panel-body tight">
+        @if (loading()) {
+          <div class="empty-state">Cargando residentes...</div>
+        } @else if (residentes().length) {
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Cédula</th>
+                  <th>Inmueble</th>
+                  <th>Tipo</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of residentes(); track item.id) {
+                  <tr>
+                    <td>
+                      <p class="entity-name">{{ item.nombreCompleto }}</p>
+                      <p class="entity-meta">{{ item.email || 'Sin email' }}</p>
+                    </td>
+                    <td>{{ item.cedula }}</td>
+                    <td>{{ item.numeroInmueble }}</td>
+                    <td>{{ item.esPropietario ? 'Propietario' : 'Residente' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">No hay residentes para el filtro actual.</div>
+        }
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Nuevo residente</h2>
+          <p class="page-subtitle">Registro operativo para nuevas altas.</p>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="save()">
+          <div class="field-group">
+            <label class="field-label" for="inmuebleId">Inmueble</label>
+            <select id="inmuebleId" class="app-select" formControlName="inmuebleId">
+              <option value="">Selecciona una unidad</option>
+              @for (item of inmuebles(); track item.id) {
+                <option [value]="item.id">
+                  {{ item.numero }} · {{ item.tipo }} · Torre {{ item.torre || '-' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="cedula">Cédula</label>
+              <input id="cedula" class="app-input" type="text" formControlName="cedula" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="pin">PIN</label>
+              <input id="pin" class="app-input" type="text" formControlName="pin" />
+            </div>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="nombre">Nombre</label>
+              <input id="nombre" class="app-input" type="text" formControlName="nombre" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="apellido">Apellido</label>
+              <input id="apellido" class="app-input" type="text" formControlName="apellido" />
+            </div>
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="telefono">Teléfono</label>
+              <input id="telefono" class="app-input" type="text" formControlName="telefono" />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="email">Email</label>
+              <input id="email" class="app-input" type="email" formControlName="email" />
+            </div>
+          </div>
+
+          <label class="status-chip">
+            <input type="checkbox" formControlName="esPropietario" />
+            Propietario
+          </label>
+
+          <button class="app-button primary" type="submit" [disabled]="saving()">
+            <svg lucideSave size="16"></svg>
+            {{ saving() ? 'Guardando...' : 'Crear residente' }}
+          </button>
+        </form>
+      </div>
+    </article>
+  </section>
+</div>

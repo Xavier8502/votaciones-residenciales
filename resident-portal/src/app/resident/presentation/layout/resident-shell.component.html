@@ -1,0 +1,52 @@
+<div class="app-root-shell">
+  <header class="shell-topbar">
+    <div class="shell-brand">
+      <span class="status-chip" data-tone="primary">
+        <svg lucideBadgeCheck size="16"></svg>
+        Residentes
+      </span>
+      <div>
+        <strong>Hola, {{ firstName() }}</strong>
+        <p>Participa y sigue tus procesos desde una experiencia pensada para movil.</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      @if (!online.isOnline()) {
+        <span class="status-chip" data-tone="danger">Sin conexion</span>
+      }
+      @if (install.canInstall()) {
+        <button class="app-button ghost" type="button" (click)="installApp()">Instalar app</button>
+      }
+      <button class="app-icon-button" type="button" aria-label="Cerrar sesion" (click)="logout()">
+        <svg lucideLogOut size="18"></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <router-outlet />
+  </main>
+
+  <nav class="bottom-nav" aria-label="Navegacion principal">
+    <div class="bottom-nav-grid">
+      @for (item of navigation; track item.route) {
+        <a
+          class="bottom-nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/app/inicio' }"
+        >
+          @if (item.icon === 'home') {
+            <svg lucideHouse size="18"></svg>
+          } @else if (item.icon === 'vote') {
+            <svg lucideVote size="18"></svg>
+          } @else {
+            <svg lucideUserRound size="18"></svg>
+          }
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </div>
+  </nav>
+</div>

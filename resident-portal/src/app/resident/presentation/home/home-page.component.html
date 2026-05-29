@@ -1,0 +1,107 @@
+<div class="page-shell">
+  <section class="hero-card stack">
+    <div class="page-header">
+      <div>
+        <span class="status-chip" data-tone="support">
+          <svg lucideVote size="16"></svg>
+          Panel del residente
+        </span>
+        <h1 class="page-title">Participa a tiempo y sigue el estado de tus votaciones.</h1>
+        <p class="page-subtitle">
+          Este portal te deja entrar rapido, revisar procesos abiertos y volver cuando cierre cada decision.
+        </p>
+      </div>
+
+      <div class="toolbar">
+        @if (install.canInstall()) {
+          <button class="app-button ghost" type="button" (click)="installApp()">Instalar</button>
+        }
+        <a class="app-button primary" routerLink="/app/votaciones">
+          <svg lucideArrowRight size="16"></svg>
+          Ir a votaciones
+        </a>
+      </div>
+    </div>
+  </section>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+
+  <section class="metric-grid">
+    <article class="metric-tile" data-tone="primary">
+      <span class="metric-label">Abiertas</span>
+      <strong class="metric-value">{{ abiertas().length }}</strong>
+      <span class="metric-note">Procesos que aun aceptan tu voto.</span>
+    </article>
+    <article class="metric-tile" data-tone="accent">
+      <span class="metric-label">Cerradas</span>
+      <strong class="metric-value">{{ cerradas().length }}</strong>
+      <span class="metric-note">Procesos que ya pasaron a lectura.</span>
+    </article>
+    <article class="metric-tile" data-tone="support">
+      <span class="metric-label">Totales</span>
+      <strong class="metric-value">{{ votaciones().length }}</strong>
+      <span class="metric-note">Historial visible para este conjunto.</span>
+    </article>
+    <article class="metric-tile">
+      <span class="metric-label">Instalable</span>
+      <strong class="metric-value">{{ install.canInstall() ? 'Si' : 'Lista' }}</strong>
+      <span class="metric-note">La app puede vivir directo en tu pantalla de inicio.</span>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Proximas a cerrar</h2>
+        <p class="page-subtitle">Prioriza estas si no quieres dejar pasar la ventana de participacion.</p>
+      </div>
+      <span class="status-chip" data-tone="primary">{{ proximas().length }} destacadas</span>
+    </div>
+
+    <div class="panel-body">
+      @if (loading()) {
+        <div class="empty-state">Cargando resumen...</div>
+      } @else if (proximas().length) {
+        <div class="vote-list">
+          @for (item of proximas(); track item.id) {
+            <article class="vote-card" [attr.data-state]="item.estado">
+              <div class="vote-card-header">
+                <div>
+                  <h3 class="vote-title">{{ item.titulo }}</h3>
+                  <p class="vote-meta">{{ item.descripcion || 'Sin descripcion adicional.' }}</p>
+                </div>
+                <span class="status-chip" data-tone="accent">{{ item.estado }}</span>
+              </div>
+
+              <div class="vote-grid">
+                <div class="vote-stat">
+                  <span>Preguntas</span>
+                  <strong>{{ item.totalPreguntas }}</strong>
+                </div>
+                <div class="vote-stat">
+                  <span>Quorum</span>
+                  <strong>{{ item.quorumRequerido }}%</strong>
+                </div>
+              </div>
+
+              <div class="vote-card-footer">
+                <span class="help-text">
+                  <svg lucideCalendarClock size="14"></svg>
+                  Cierra {{ item.fechaFin | date: 'short' }}
+                </span>
+                <a class="app-button ghost" [routerLink]="['/app/votaciones', item.id]">Ver detalle</a>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <strong>No hay votaciones urgentes.</strong>
+          Cuando un proceso se abra, lo veras aqui primero.
+        </div>
+      }
+    </div>
+  </section>
+</div>

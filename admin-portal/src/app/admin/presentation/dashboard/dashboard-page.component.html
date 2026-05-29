@@ -1,0 +1,186 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">
+        Vista operativa del conjunto actual, con foco en carga administrativa y visibilidad rápida.
+      </p>
+    </div>
+
+    <div class="toolbar">
+      <button class="app-button ghost" type="button" (click)="load()">
+        <svg lucideRefreshCw size="16"></svg>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="panel">
+      <div class="empty-state">Cargando tablero...</div>
+    </div>
+  } @else {
+    <section class="metric-grid">
+      @for (metric of metricas(); track metric.label) {
+        <article class="metric-tile" [attr.data-tone]="metric.tone">
+          <div class="metric-label">{{ metric.label }}</div>
+          <div class="metric-value">
+            @if (metric.label === 'Coeficiente total') {
+              {{ metric.value | number: '1.0-2' }}
+            } @else {
+              {{ metric.value }}
+            }
+          </div>
+          <div class="metric-note">Snapshot de la sesión administrativa.</div>
+        </article>
+      }
+    </section>
+
+    <section class="split-view">
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Contexto del conjunto</h2>
+            <p class="page-subtitle">Información que la sesión heredó desde la API.</p>
+          </div>
+          <span class="status-chip" data-tone="primary">
+            <svg lucideBuilding2 size="14"></svg>
+            Activo
+          </span>
+        </div>
+
+        <div class="panel-body">
+          @if (conjunto()) {
+            <div class="detail-list">
+              <div class="detail-row">
+                <span class="detail-label">Nombre</span>
+                <span class="detail-value">{{ conjunto()!.nombre }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">NIT</span>
+                <span class="detail-value">{{ conjunto()!.nit }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Ciudad</span>
+                <span class="detail-value">{{ conjunto()!.ciudad }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Dirección</span>
+                <span class="detail-value">{{ conjunto()!.direccion }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Contacto</span>
+                <span class="detail-value">{{ conjunto()!.email || 'Sin email' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Pulso operativo</h2>
+            <p class="page-subtitle">Indicadores útiles para saber dónde está la carga.</p>
+          </div>
+        </div>
+
+        <div class="panel-body stack">
+          <div class="status-chip" data-tone="accent">
+            <svg lucideVote size="14"></svg>
+            {{ votaciones().length }} votaciones registradas
+          </div>
+          <div class="status-chip" data-tone="support">
+            <svg lucideUsers size="14"></svg>
+            {{ residentes().length }} residentes relacionados
+          </div>
+          <div class="status-chip" data-tone="success">
+            <svg lucideHouse size="14"></svg>
+            {{ inmuebles().length }} inmuebles visibles
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="split-view">
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Votaciones recientes</h2>
+            <p class="page-subtitle">Estado y ventanas temporales del conjunto.</p>
+          </div>
+        </div>
+
+        <div class="panel-body tight">
+          @if (votaciones().length) {
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Fechas</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of votaciones(); track item.id) {
+                    <tr>
+                      <td>
+                        <p class="entity-name">{{ item.titulo }}</p>
+                        <p class="entity-meta">{{ item.tipoPeso }}</p>
+                      </td>
+                      <td>{{ item.estado }}</td>
+                      <td>{{ item.fechaInicio | date: 'short' }} - {{ item.fechaFin | date: 'short' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="empty-state">No hay votaciones disponibles.</div>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Residentes recientes</h2>
+            <p class="page-subtitle">Muestra rápida de los titulares de la operación.</p>
+          </div>
+        </div>
+
+        <div class="panel-body tight">
+          @if (residentes().length) {
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Inmueble</th>
+                    <th>Rol</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of residentes().slice(0, 6); track item.id) {
+                    <tr>
+                      <td>{{ item.nombreCompleto }}</td>
+                      <td>{{ item.numeroInmueble }}</td>
+                      <td>{{ item.esPropietario ? 'Propietario' : 'Residente' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="empty-state">No hay residentes disponibles.</div>
+          }
+        </div>
+      </article>
+    </section>
+  }
+</div>

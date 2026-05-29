@@ -1,0 +1,176 @@
+<div class="page-shell">
+  <div class="detail-topbar">
+    <button class="app-button ghost" type="button" (click)="goBack()">
+      <svg lucideArrowLeft size="16"></svg>
+      Volver
+    </button>
+
+    <button class="app-button ghost" type="button" (click)="refresh()">
+      <svg lucideRefreshCw size="16"></svg>
+      Actualizar
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="panel">
+      <div class="empty-state">Cargando votacion...</div>
+    </div>
+  } @else if (detail()) {
+    <section class="hero-card stack">
+      <div class="page-header">
+        <div>
+          <span class="status-chip" [attr.data-tone]="statusTone()">{{ detail()!.estado }}</span>
+          <h1 class="page-title">{{ detail()!.titulo }}</h1>
+          <p class="page-subtitle">{{ detail()!.descripcion || 'Sin descripcion adicional.' }}</p>
+        </div>
+
+        <div class="stack detail-side">
+          <span class="status-chip" [attr.data-tone]="liveConnected() ? 'success' : 'accent'">
+            {{ liveConnected() ? 'En vivo' : 'Sincronizacion pasiva' }}
+          </span>
+          <span class="status-chip">Quorum {{ detail()!.quorumRequerido }}%</span>
+        </div>
+      </div>
+
+      <div class="vote-grid">
+        <div class="vote-stat">
+          <span>Inicio</span>
+          <strong>{{ detail()!.fechaInicio | date: 'short' }}</strong>
+        </div>
+        <div class="vote-stat">
+          <span>Cierre</span>
+          <strong>{{ detail()!.fechaFin | date: 'short' }}</strong>
+        </div>
+        <div class="vote-stat">
+          <span>Preguntas</span>
+          <strong>{{ detail()!.preguntas.length }}</strong>
+        </div>
+        <div class="vote-stat">
+          <span>Peso del voto</span>
+          <strong>{{ detail()!.tipoPeso }}</strong>
+        </div>
+      </div>
+    </section>
+
+    @if (detail()!.estado === 'Abierta' && !voteReceipt()) {
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Emitir voto</h2>
+            <p class="page-subtitle">Selecciona una opcion por pregunta y confirma una sola vez.</p>
+          </div>
+        </div>
+
+        <div class="panel-body question-stack">
+          @for (pregunta of detail()!.preguntas; track pregunta.id; let index = $index) {
+            <article class="question-card">
+              <strong>{{ index + 1 }}. {{ pregunta.texto }}</strong>
+              <div class="option-choice">
+                @for (opcion of pregunta.opciones; track opcion.id) {
+                  <label class="option-item">
+                    <input
+                      type="radio"
+                      [name]="'pregunta-' + pregunta.id"
+                      [checked]="selectedAnswers()[pregunta.id] === opcion.id"
+                      (change)="selectOption(pregunta.id, opcion.id)"
+                    />
+                    <span>{{ opcion.texto }}</span>
+                  </label>
+                }
+              </div>
+            </article>
+          }
+
+          <button class="app-button primary" type="button" [disabled]="!canVote() || submitting()" (click)="submitVote()">
+            <svg lucideSendHorizontal size="16"></svg>
+            {{ submitting() ? 'Enviando...' : 'Confirmar voto' }}
+          </button>
+
+          <div class="status-banner info info-inline">
+            <svg lucideCircleAlert size="16"></svg>
+            Tu voto es secreto y no se puede revertir despues del envio.
+          </div>
+        </div>
+      </section>
+    } @else if (detail()!.estado === 'Abierta' && voteReceipt()) {
+      <div class="status-banner success info-inline">
+        <svg lucideBadgeCheck size="16"></svg>
+        Ya registraste tu participacion en esta votacion. Cuando el proceso cierre podras revisar los resultados.
+      </div>
+    }
+
+    @if (shouldShowResults()) {
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Resultados</h2>
+            <p class="page-subtitle">Resumen consolidado del proceso una vez cerrada la votacion.</p>
+          </div>
+          @if (resultados()) {
+            <span class="status-chip" [attr.data-tone]="resultados()!.quorumAlcanzado ? 'success' : 'accent'">
+              {{ resultados()!.quorumAlcanzado ? 'Quorum alcanzado' : 'Quorum pendiente' }}
+            </span>
+          }
+        </div>
+
+        <div class="panel-body stack">
+          @if (resultadosError()) {
+            <div class="status-banner error">{{ resultadosError() }}</div>
+          } @else if (resultados()) {
+            <div class="metric-grid">
+              <article class="metric-tile" data-tone="primary">
+                <span class="metric-label">Participacion</span>
+                <strong class="metric-value">{{ resultados()!.porcentajeParticipacion | number: '1.0-1' }}%</strong>
+                <span class="metric-note">Corte oficial sobre el total esperado.</span>
+              </article>
+              <article class="metric-tile" data-tone="accent">
+                <span class="metric-label">Votos emitidos</span>
+                <strong class="metric-value">{{ resultados()!.totalVotos }}</strong>
+                <span class="metric-note">Total de votos contados en el proceso.</span>
+              </article>
+            </div>
+
+            <div class="result-stack">
+              @for (pregunta of resultados()!.preguntas; track pregunta.preguntaId) {
+                <article class="result-card">
+                  <div class="vote-card-header">
+                    <div>
+                      <strong>{{ pregunta.texto }}</strong>
+                      <p class="vote-meta">{{ topOption(pregunta) }}</p>
+                    </div>
+                    <span class="status-chip">{{ pregunta.opciones.length }} opciones</span>
+                  </div>
+
+                  <div class="stack">
+                    @for (opcion of pregunta.opciones; track opcion.opcionId; let index = $index) {
+                      <div class="stack">
+                        <div class="result-row-top">
+                          <span>{{ opcion.texto }}</span>
+                          <strong>{{ opcion.porcentajeVotos | number: '1.0-2' }}%</strong>
+                        </div>
+                        <div class="result-bar-track">
+                          <div class="result-bar-fill" [ngStyle]="optionBarStyle(index, opcion.porcentajeVotos)"></div>
+                        </div>
+                        <div class="result-row-bottom">
+                          <span>{{ opcion.totalVotos }} votos</span>
+                          <span>Peso {{ opcion.pesoTotal | number: '1.0-2' }}</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

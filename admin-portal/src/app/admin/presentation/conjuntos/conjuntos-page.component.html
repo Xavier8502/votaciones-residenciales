@@ -1,0 +1,142 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Conjuntos</h1>
+      <p class="page-subtitle">Alta y actualización de la información base del conjunto.</p>
+    </div>
+
+    <div class="toolbar">
+      <button class="app-button ghost" type="button" (click)="load()">
+        <svg lucideRefreshCw size="16"></svg>
+        Recargar
+      </button>
+      <button class="app-button primary" type="button" (click)="startCreate()">
+        <svg lucideCirclePlus size="16"></svg>
+        Nuevo conjunto
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  <section class="split-view">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Listado</h2>
+          <p class="page-subtitle">Selecciona un conjunto para ver su detalle y edición.</p>
+        </div>
+        <span class="status-chip">{{ items().length }} registros</span>
+      </div>
+
+      <div class="panel-body tight">
+        @if (loading()) {
+          <div class="empty-state">Cargando conjuntos...</div>
+        } @else if (items().length) {
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Ciudad</th>
+                  <th>NIT</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items(); track item.id) {
+                  <tr>
+                    <td>
+                      <button class="row-action" type="button" (click)="select(item)">
+                        <p class="entity-name">{{ item.nombre }}</p>
+                        <p class="entity-meta">{{ item.direccion }}</p>
+                      </button>
+                    </td>
+                    <td>{{ item.ciudad }}</td>
+                    <td>{{ item.nit }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">Aún no hay conjuntos cargados.</div>
+        }
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">{{ createMode() ? 'Nuevo conjunto' : 'Editar conjunto' }}</h2>
+          <p class="page-subtitle">
+            {{ createMode() ? 'Crear un nuevo registro maestro.' : 'Modificar datos operativos del conjunto.' }}
+          </p>
+        </div>
+        @if (!createMode()) {
+          <span class="status-chip" data-tone="primary">
+            <svg lucidePencil size="14"></svg>
+            Edición
+          </span>
+        }
+      </div>
+
+      <div class="panel-body stack">
+        @if (selected()) {
+          <div class="detail-list">
+            <div class="detail-row">
+              <span class="detail-label">Inmuebles</span>
+              <span class="detail-value">{{ selected()!.totalInmuebles }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Coeficiente total</span>
+              <span class="detail-value">{{ selected()!.totalCoeficientes | number: '1.0-2' }}</span>
+            </div>
+          </div>
+        }
+
+        <form class="form-grid" [formGroup]="form" (ngSubmit)="save()">
+          <div class="field-group">
+            <label class="field-label" for="nombre">Nombre</label>
+            <input id="nombre" class="app-input" type="text" formControlName="nombre" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="nit">NIT</label>
+            <input id="nit" class="app-input" type="text" formControlName="nit" />
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="direccion">Dirección</label>
+            <input id="direccion" class="app-input" type="text" formControlName="direccion" />
+          </div>
+
+          <div class="field-group two-up">
+            <div class="field-group">
+              <label class="field-label" for="ciudad">Ciudad</label>
+              <input id="ciudad" class="app-input" type="text" formControlName="ciudad" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="telefono">Teléfono</label>
+              <input id="telefono" class="app-input" type="text" formControlName="telefono" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="email">Email</label>
+            <input id="email" class="app-input" type="email" formControlName="email" />
+          </div>
+
+          <button class="app-button primary" type="submit" [disabled]="saving()">
+            <svg lucideSave size="16"></svg>
+            {{ saving() ? 'Guardando...' : createMode() ? 'Crear conjunto' : 'Guardar cambios' }}
+          </button>
+        </form>
+      </div>
+    </article>
+  </section>
+</div>

@@ -1,0 +1,69 @@
+<div class="login-layout">
+  <section class="login-intro">
+    <div class="login-brand">
+      <span class="status-chip" data-tone="primary">
+        <svg lucideBadgeCheck size="16"></svg>
+        Portal administrativo
+      </span>
+      <h1>Votaciones Residenciales</h1>
+      <p>
+        Un front independiente para operación administrativa, modelado con capas limpias,
+        comandos, consultas y una interfaz enfocada en trabajo real.
+      </p>
+    </div>
+
+    <div class="login-points">
+      <div class="login-point">
+        <svg lucideBuilding2 size="18"></svg>
+        <div>
+          <strong>Conjuntos e inmuebles</strong>
+          <p>Alta visibilidad de inventario, coeficientes y contexto del conjunto.</p>
+        </div>
+      </div>
+
+      <div class="login-point">
+        <svg lucideKeyRound size="18"></svg>
+        <div>
+          <strong>Seguridad por rol</strong>
+          <p>Acceso restringido a administradores del conjunto con JWT de la API.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <form class="panel login-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Iniciar sesión</h2>
+          <p class="page-subtitle">Usa las credenciales del administrador seed para comenzar.</p>
+        </div>
+      </div>
+
+      <div class="panel-body form-grid">
+        @if (error()) {
+          <div class="status-banner error">{{ error() }}</div>
+        }
+
+        <div class="field-group">
+          <label class="field-label" for="cedula">Cédula</label>
+          <input id="cedula" class="app-input" type="text" formControlName="cedula" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="pin">PIN</label>
+          <input id="pin" class="app-input" type="password" formControlName="pin" />
+        </div>
+
+        <div class="help-text">
+          Seed sugerido: <strong>9000000001</strong> / <strong>1234</strong>
+        </div>
+
+        <button class="app-button primary" type="submit" [disabled]="submitting()">
+          <svg lucideArrowRight size="16"></svg>
+          {{ submitting() ? 'Entrando...' : 'Entrar al portal' }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

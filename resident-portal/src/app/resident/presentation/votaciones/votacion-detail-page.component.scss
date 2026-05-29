@@ -1,0 +1,19 @@
+:host {
+  display: block;
+}
+
+.detail-side {
+  justify-items: start;
+}
+
+.info-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (min-width: 840px) {
+  .detail-side {
+    justify-items: end;
+  }
+}

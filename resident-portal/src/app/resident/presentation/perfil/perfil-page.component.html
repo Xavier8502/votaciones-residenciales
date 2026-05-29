@@ -1,0 +1,78 @@
+<div class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Perfil</h1>
+      <p class="page-subtitle">Gestiona el acceso de tu cuenta y deja lista la app para usarla desde el celular.</p>
+    </div>
+
+    <div class="toolbar">
+      @if (install.canInstall()) {
+        <button class="app-button ghost" type="button" (click)="installApp()">
+          <svg lucideDownload size="16"></svg>
+          Instalar
+        </button>
+      }
+      <button class="app-button danger" type="button" (click)="logout()">
+        <svg lucideLogOut size="16"></svg>
+        Salir
+      </button>
+    </div>
+  </header>
+
+  <section class="metric-grid">
+    <article class="metric-tile" data-tone="primary">
+      <span class="metric-label">Residente</span>
+      <strong class="metric-value profile-metric">{{ session()?.nombreCompleto }}</strong>
+      <span class="metric-note">Sesion activa sobre este dispositivo.</span>
+    </article>
+    <article class="metric-tile" data-tone="support">
+      <span class="metric-label">Rol</span>
+      <strong class="metric-value">{{ session()?.rol }}</strong>
+      <span class="metric-note">Controlado por la API al momento del login.</span>
+    </article>
+  </section>
+
+  @if (error()) {
+    <div class="status-banner error">{{ error() }}</div>
+  }
+  @if (feedback()) {
+    <div class="status-banner success">{{ feedback() }}</div>
+  }
+
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Actualizar PIN</h2>
+        <p class="page-subtitle">Usa una combinacion breve pero facil de recordar para tu operacion diaria.</p>
+      </div>
+      <span class="status-chip" data-tone="primary">
+        <svg lucideShieldCheck size="16"></svg>
+        Seguridad
+      </span>
+    </div>
+
+    <form class="panel-body form-grid" [formGroup]="form" (ngSubmit)="save()">
+      <div class="field-group">
+        <label class="field-label" for="pinActual">PIN actual</label>
+        <input id="pinActual" class="app-input" type="password" formControlName="pinActual" />
+      </div>
+
+      <div class="field-group two-up">
+        <div class="field-group">
+          <label class="field-label" for="nuevoPin">Nuevo PIN</label>
+          <input id="nuevoPin" class="app-input" type="password" formControlName="nuevoPin" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="confirmarPin">Confirmar PIN</label>
+          <input id="confirmarPin" class="app-input" type="password" formControlName="confirmarPin" />
+        </div>
+      </div>
+
+      <button class="app-button primary" type="submit" [disabled]="saving()">
+        <svg lucideKeyRound size="16"></svg>
+        {{ saving() ? 'Guardando...' : 'Actualizar PIN' }}
+      </button>
+    </form>
+  </section>
+</div>
