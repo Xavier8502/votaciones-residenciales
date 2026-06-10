@@ -3,6 +3,7 @@ import * as signalR from '@microsoft/signalr';
 import { Subject } from 'rxjs';
 
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
+import { appRuntimeConfig } from '../../../core/config/app-runtime-config';
 import { NuevoVotoNotificacion } from '../../domain/votaciones/votacion';
 
 @Injectable({ providedIn: 'root' })
@@ -20,9 +21,12 @@ export class VotacionLiveService implements OnDestroy {
     }
 
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl('/hubs/votacion', {
+      .withUrl(
+        `${appRuntimeConfig.hubBaseUrl || ''}/hubs/votacion`,
+        {
         accessTokenFactory: () => this.auth.token() ?? ''
-      })
+        }
+      )
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();
