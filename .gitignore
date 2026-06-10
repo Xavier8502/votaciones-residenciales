@@ -16,6 +16,7 @@ src/API/logs/
 **/appsettings.Local.json
 **/appsettings.*.local.json
 VotacionesResidenciales.slnLaunch.user
+src/Residente/
 
 # Node / Angular
 **/node_modules/
