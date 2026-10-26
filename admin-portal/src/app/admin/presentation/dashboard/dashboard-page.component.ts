@@ -19,6 +19,9 @@ import { GetInmueblesQuery } from '../../application/inmuebles/inmuebles.cqrs';
 import { GetResidentesQuery } from '../../application/residentes/residentes.cqrs';
 import { GetVotacionesQuery } from '../../application/votaciones/votaciones.cqrs';
 import { ConjuntoDetalle, ConjuntoResumen } from '../../domain/conjuntos/conjunto';
+import { Inmueble } from '../../domain/inmuebles/inmueble';
+import { Residente } from '../../domain/residentes/residente';
+import { VotacionResumen } from '../../domain/votaciones/votacion';
 
 interface DashboardConjunto {
   conjunto: ConjuntoDetalle;
@@ -75,15 +78,9 @@ export class DashboardPageComponent {
     const requests = conjuntos.map((item) =>
       forkJoin({
         detalle: this.queryBus.execute<ConjuntoDetalle>(new GetConjuntoDetailQuery(item.id)),
-        inmuebles: this.queryBus.execute<import('../../domain/inmuebles/inmueble').Inmueble[]>(
-          new GetInmueblesQuery(item.id, null)
-        ),
-        residentes: this.queryBus.execute<import('../../domain/residentes/residente').Residente[]>(
-          new GetResidentesQuery(item.id, null)
-        ),
-        votaciones: this.queryBus.execute<import('../../domain/votaciones/votacion').VotacionResumen[]>(
-          new GetVotacionesQuery(item.id, null)
-        )
+        inmuebles: this.queryBus.execute<Inmueble[]>(new GetInmueblesQuery(item.id, null)),
+        residentes: this.queryBus.execute<Residente[]>(new GetResidentesQuery(item.id, null)),
+        votaciones: this.queryBus.execute<VotacionResumen[]>(new GetVotacionesQuery(item.id, null))
       }).pipe(
         map(({ detalle, inmuebles, residentes, votaciones }) => ({
           conjunto: detalle,
