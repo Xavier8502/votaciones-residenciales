@@ -1,0 +1,89 @@
+<main class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Administración global</p>
+      <h1>Asignación de conjuntos</h1>
+      <p class="subtitle">
+        Gestiona los conjuntos residenciales asignados a cada administrador.
+      </p>
+    </div>
+
+    <button type="button" class="secondary-button"
+      (click)="cargarDatos()" [disabled]="cargando() || guardando()">
+      Actualizar
+    </button>
+  </header>
+
+  <section class="panel">
+    <h2>Nueva asignación</h2>
+
+    <form class="assignment-form" (ngSubmit)="asignar()">
+      <label>
+        Administrador
+        <select name="administradorId" [(ngModel)]="administradorId" required>
+          <option value="">Selecciona un administrador</option>
+          <option *ngFor="let admin of administradores()"
+            [value]="admin.id" [disabled]="!admin.activo">
+            {{ nombreAdministrador(admin) }} — {{ admin.cedula }}
+            {{ admin.activo ? '' : '(Inactivo)' }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Conjunto residencial
+        <select name="conjuntoId" [(ngModel)]="conjuntoId" required>
+          <option value="">Selecciona un conjunto</option>
+          <option *ngFor="let conjunto of conjuntos()" [value]="conjunto.id">
+            {{ conjunto.nombre }}
+          </option>
+        </select>
+      </label>
+
+      <button type="submit" class="primary-button"
+        [disabled]="guardando() || cargando()">
+        {{ guardando() ? 'Guardando...' : 'Asignar conjunto' }}
+      </button>
+    </form>
+
+    <p class="notice success" *ngIf="mensaje()">{{ mensaje() }}</p>
+    <p class="notice error" *ngIf="error()">{{ error() }}</p>
+    <p class="loading" *ngIf="cargando()">Cargando información...</p>
+  </section>
+
+  <section class="panel">
+    <h2>Administradores registrados</h2>
+    <p class="subtitle">{{ administradores().length }} administrador(es)</p>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Administrador</th>
+            <th>Cédula</th>
+            <th>Estado</th>
+            <th>Conjuntos asignados</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let admin of administradores()">
+            <td class="admin-name">{{ nombreAdministrador(admin) }}</td>
+            <td>{{ admin.cedula }}</td>
+            <td>
+              <span class="status" [class.inactive]="!admin.activo">
+                {{ admin.activo ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td>{{ conjuntosActivos(admin) }}</td>
+          </tr>
+
+          <tr *ngIf="!cargando() && !administradores().length">
+            <td colspan="4" class="empty-cell">
+              No hay administradores para mostrar.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

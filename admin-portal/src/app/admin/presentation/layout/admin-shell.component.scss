@@ -126,4 +126,30 @@
   .admin-content {
     padding: 18px;
   }
+
+  .admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  }
+
+  .logout-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .admin-topbar-actions {
+      align-items: flex-end;
+    }
+
+    .logout-button span {
+      display: none;
+    }
+  }
 }

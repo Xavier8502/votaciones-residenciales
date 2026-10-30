@@ -79,14 +79,18 @@ public static class AppDbContextSeed
                 logger.LogInformation("⏭️ Inmuebles ya existen.");
             }
 
-            // ── Admin del Conjunto ─────────────────────────────────
-            if (!await context.AdminesConjunto.AnyAsync())
+
+            // ── Admin del Conjunto ────────────────────────────────
+            var admin = await context.AdminesConjunto
+                .Include(a => a.Asignaciones)
+                .FirstOrDefaultAsync(a => a.Cedula == "9000000001");
+
+            if (admin is null)
             {
                 var pinHash = BCrypt.Net.BCrypt.HashPassword("1234");
 
-                var admin = AdminConjunto.Crear(
-                    conjunto.Id,
-                    "9000000001",       // cédula diferente a los residentes
+                admin = AdminConjunto.Crear(
+                    "9000000001",
                     "Carlos",
                     "Administrador",
                     pinHash);
@@ -95,16 +99,29 @@ public static class AppDbContextSeed
                     "3001111111",
                     "admin@elprado.com");
 
+                admin.AgregarAsignacion(conjunto);
+
                 await context.AdminesConjunto.AddAsync(admin);
                 await context.SaveChangesAsync();
 
                 logger.LogInformation(
-                    "✅ Admin creado. Cédula: 9000000001 PIN: 1234");
+                    "Admin creado. Cédula: 9000000001");
+            }
+            else if (!admin.Asignaciones.Any(
+                a => a.ConjuntoId == conjunto.Id))
+            {
+                admin.AgregarAsignacion(conjunto);
+                await context.SaveChangesAsync();
+
+                logger.LogInformation(
+                    "Asignación creada para el administrador de El Prado.");
             }
             else
             {
-                logger.LogInformation("⏭️ Admin ya existe.");
+                logger.LogInformation(
+                    "El administrador de El Prado ya existe y está asignado.");
             }
+
 
             // ── Residentes ─────────────────────────────────────────
             if (!await context.Residentes.AnyAsync())

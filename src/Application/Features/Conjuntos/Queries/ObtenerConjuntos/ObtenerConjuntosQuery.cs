@@ -17,6 +17,7 @@ namespace VotacionesResidenciales.Application.Features.Conjuntos.Queries.Obtener
         string Ciudad,
         string? Telefono,
         string? Email,
-        DateTime CreadoEn
+        DateTime CreadoEn,
+        bool Activo
     );
 }

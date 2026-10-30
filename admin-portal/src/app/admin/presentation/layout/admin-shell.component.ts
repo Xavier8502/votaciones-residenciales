@@ -42,9 +42,25 @@ export class AdminShellComponent {
 
   readonly compact = signal(false);
   readonly navigation = adminNavigation;
+  readonly isSuperAdmin = this.auth.isSuperAdmin;
+
+  readonly visibleNavigation = computed(() => {
+    if (this.isSuperAdmin()) {
+      return [
+        {
+          label: 'Asignaciones',
+          route: '/superadmin/asignaciones',
+          icon: 'conjuntos'
+        }
+      ];
+    }
+
+    return this.navigation;
+  });
   readonly session = this.auth.session;
   readonly displayName = computed(() => this.session()?.nombreCompleto ?? 'Administrador');
-
+  
+  
   toggleSidebar(): void {
     this.compact.update((current) => !current);
   }

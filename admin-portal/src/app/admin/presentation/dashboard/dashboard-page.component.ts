@@ -1,6 +1,7 @@
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   LucideBuilding2,
   LucideHouse,
@@ -9,16 +10,25 @@ import {
   LucideVote
 } from '@lucide/angular';
 
-import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { QueryBus } from '../../application/cqrs/query-bus';
-import { GetConjuntoDetailQuery } from '../../application/conjuntos/conjuntos.cqrs';
+import {
+  GetConjuntoDetailQuery,
+  GetConjuntosQuery
+} from '../../application/conjuntos/conjuntos.cqrs';
 import { GetInmueblesQuery } from '../../application/inmuebles/inmuebles.cqrs';
 import { GetResidentesQuery } from '../../application/residentes/residentes.cqrs';
 import { GetVotacionesQuery } from '../../application/votaciones/votaciones.cqrs';
-import { ConjuntoDetalle } from '../../domain/conjuntos/conjunto';
+import { ConjuntoDetalle, ConjuntoResumen } from '../../domain/conjuntos/conjunto';
 import { Inmueble } from '../../domain/inmuebles/inmueble';
 import { Residente } from '../../domain/residentes/residente';
 import { VotacionResumen } from '../../domain/votaciones/votacion';
+
+interface DashboardConjunto {
+  conjunto: ConjuntoDetalle;
+  totalInmuebles: number;
+  totalResidentes: number;
+  totalVotaciones: number;
+}
 
 @Component({
   selector: 'app-dashboard-page',
@@ -36,56 +46,58 @@ import { VotacionResumen } from '../../domain/votaciones/votacion';
 })
 export class DashboardPageComponent {
   private readonly queryBus = inject(QueryBus);
-  private readonly auth = inject(AuthSessionService);
 
   readonly loading = signal(true);
   readonly error = signal('');
-  readonly conjunto = signal<ConjuntoDetalle | null>(null);
-  readonly inmuebles = signal<Inmueble[]>([]);
-  readonly residentes = signal<Residente[]>([]);
-  readonly votaciones = signal<VotacionResumen[]>([]);
-
-  readonly metricas = computed(() => [
-    { label: 'Inmuebles', value: this.inmuebles().length, tone: 'primary' },
-    {
-      label: 'Residentes activos',
-      value: this.residentes().filter((item) => item.activo).length,
-      tone: 'support'
-    },
-    { label: 'Votaciones', value: this.votaciones().length, tone: 'accent' },
-    { label: 'Coeficiente total', value: this.conjunto()?.totalCoeficientes ?? 0, tone: 'neutral' }
-  ]);
+  readonly conjuntos = signal<DashboardConjunto[]>([]);
 
   constructor() {
     this.load();
   }
 
   load(): void {
-    const conjuntoId = this.auth.currentConjuntoId();
-    if (!conjuntoId) {
-      this.error.set('La sesión no tiene un conjunto asociado.');
+    this.loading.set(true);
+    this.error.set('');
+
+    this.queryBus.execute<ConjuntoResumen[]>(new GetConjuntosQuery()).subscribe({
+      next: (conjuntos) => this.loadMetrics(conjuntos),
+      error: (error: Error) => {
+        this.error.set(error.message || 'No fue posible cargar los conjuntos.');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private loadMetrics(conjuntos: ConjuntoResumen[]): void {
+    if (!conjuntos.length) {
+      this.conjuntos.set([]);
       this.loading.set(false);
       return;
     }
 
-    this.loading.set(true);
-    this.error.set('');
+    const requests = conjuntos.map((item) =>
+      forkJoin({
+        detalle: this.queryBus.execute<ConjuntoDetalle>(new GetConjuntoDetailQuery(item.id)),
+        inmuebles: this.queryBus.execute<Inmueble[]>(new GetInmueblesQuery(item.id, null)),
+        residentes: this.queryBus.execute<Residente[]>(new GetResidentesQuery(item.id, null)),
+        votaciones: this.queryBus.execute<VotacionResumen[]>(new GetVotacionesQuery(item.id, null))
+      }).pipe(
+        map(({ detalle, inmuebles, residentes, votaciones }) => ({
+          conjunto: detalle,
+          totalInmuebles: inmuebles.length,
+          totalResidentes: residentes.filter((residente) => residente.activo).length,
+          totalVotaciones: votaciones.length
+        }))
+      )
+    );
 
-    forkJoin({
-      conjunto: this.queryBus.execute<ConjuntoDetalle>(new GetConjuntoDetailQuery(conjuntoId)),
-      inmuebles: this.queryBus.execute<Inmueble[]>(new GetInmueblesQuery(conjuntoId, null)),
-      residentes: this.queryBus.execute<Residente[]>(new GetResidentesQuery(conjuntoId, null)),
-      votaciones: this.queryBus.execute<VotacionResumen[]>(new GetVotacionesQuery(conjuntoId, null))
-    }).subscribe({
-      next: ({ conjunto, inmuebles, residentes, votaciones }) => {
-        this.conjunto.set(conjunto);
-        this.inmuebles.set(inmuebles);
-        this.residentes.set(residentes);
-        this.votaciones.set(votaciones);
+    forkJoin(requests).subscribe({
+      next: (resultado) => {
+        this.conjuntos.set(resultado);
         this.loading.set(false);
       },
       error: (error: Error) => {
-        this.error.set(error.message || 'No fue posible cargar el tablero.');
+        this.error.set(error.message || 'No fue posible cargar los indicadores de los conjuntos.');
         this.loading.set(false);
       }
     });

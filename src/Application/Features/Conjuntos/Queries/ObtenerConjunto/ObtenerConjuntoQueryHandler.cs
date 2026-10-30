@@ -47,7 +47,8 @@ namespace VotacionesResidenciales.Application.Features.Conjuntos.Queries.Obtener
                 conjunto.Email,
                 listaInmuebles.Count,
                 listaInmuebles.Sum(i => i.Coeficiente),
-                conjunto.CreadoEn));
+                conjunto.CreadoEn,
+                conjunto.Activo));
         }
     }
 }

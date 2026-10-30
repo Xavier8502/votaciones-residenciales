@@ -1,66 +1,115 @@
-<div class="login-layout">
-  <section class="login-intro hero-card">
-    <span class="status-chip" data-tone="primary">
-      <svg lucideBadgeCheck size="16"></svg>
-      PWA para residentes
-    </span>
 
-    <div class="stack">
-      <h1 class="page-title">Tu voto, listo para vivir en el celular.</h1>
-      <p class="page-subtitle">
-        Entra, revisa procesos activos, participa sin friccion y vuelve cuando quieras desde una interfaz
-        ligera e instalable.
-      </p>
-    </div>
+import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import {
+  LucideArrowRight,
+  LucideBadgeCheck,
+  LucideBuilding2,
+  LucideKeyRound
+} from '@lucide/angular';
 
-    <div class="login-points">
-      <div class="sheet-card login-point">
-        <svg lucideSmartphone size="18"></svg>
-        <div>
-          <strong>Instalable</strong>
-          <p>Guardala en pantalla de inicio y usala como una app nativa.</p>
-        </div>
-      </div>
+import { AuthSessionService } from '../../../core/auth/auth-session.service';
+import {
+  ConjuntoLoginOption,
+  LoginCredentials,
+  LoginResult
+} from '../../domain/auth/auth-session';
+import { LoginCommand } from '../../application/auth/auth.cqrs';
+import { CommandBus } from '../../application/cqrs/command-bus';
 
-      <div class="sheet-card login-point">
-        <svg lucideLockKeyhole size="18"></svg>
-        <div>
-          <strong>Acceso por PIN</strong>
-          <p>Ingreso rapido para residentes con sesion protegida por JWT.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+@Component({
+  selector: 'app-login-page',
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    LucideArrowRight,
+    LucideBadgeCheck,
+    LucideBuilding2,
+    LucideKeyRound
+  ],
+  templateUrl: './login-page.component.html',
+  styleUrl: './login-page.component.scss'
+})
+export class LoginPageComponent {
+  private readonly fb = inject(FormBuilder);
+  private readonly commandBus = inject(CommandBus);
+  private readonly router = inject(Router);
+  private readonly session = inject(AuthSessionService);
 
-  <section class="panel login-panel">
-    <div class="panel-header">
-      <div>
-        <h2 class="panel-title">Ingresar</h2>
-        <p class="page-subtitle">Usa las credenciales seed del residente para comenzar.</p>
-      </div>
-    </div>
+  readonly submitting = signal(false);
+  readonly error = signal('');
+  readonly conjuntos = signal<ConjuntoLoginOption[]>([]);
+  readonly conjuntoSeleccionadoId = signal('');
 
-    <form class="panel-body form-grid" [formGroup]="form" (ngSubmit)="submit()">
-      @if (error()) {
-        <div class="status-banner error">{{ error() }}</div>
-      }
+  readonly form = this.fb.nonNullable.group({
+    cedula: ['9000000001', [
+      Validators.required,
+      Validators.minLength(5)
+    ]],
+    pin: ['1234', [
+      Validators.required,
+      Validators.minLength(4),
+      Validators.maxLength(6)
+    ]]
+  });
 
-      <div class="field-group">
-        <label class="field-label" for="cedula">Cedula</label>
-        <input id="cedula" class="app-input" type="text" formControlName="cedula" />
-      </div>
+  constructor() {
+    if (this.session.isAdmin()) {
+      void this.router.navigateByUrl('/admin/dashboard');
+    }
+  }
 
-      <div class="field-group">
-        <label class="field-label" for="pin">PIN</label>
-        <input id="pin" class="app-input" type="password" formControlName="pin" />
-      </div>
+  submit(): void {
+    if (this.form.invalid || this.submitting()) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-      <div class="help-text">Seed sugerido: <strong>1000000001</strong> / <strong>1234</strong></div>
+    if (
+      this.conjuntos().length > 0 &&
+      !this.conjuntoSeleccionadoId()
+    ) {
+      this.error.set('Selecciona un conjunto para continuar.');
+      return;
+    }
 
-      <button class="app-button primary" type="submit" [disabled]="submitting()">
-        <svg lucideArrowRight size="16"></svg>
-        {{ submitting() ? 'Entrando...' : 'Entrar al portal' }}
-      </button>
-    </form>
-  </section>
-</div>
+    this.submitting.set(true);
+    this.error.set('');
+
+    const credentials: LoginCredentials = {
+      ...this.form.getRawValue(),
+      ...(this.conjuntoSeleccionadoId()
+        ? { conjuntoId: this.conjuntoSeleccionadoId() }
+        : {})
+    };
+
+    this.commandBus
+      .execute(new LoginCommand(credentials))
+      .subscribe({
+        next: (result: LoginResult) => {
+          this.submitting.set(false);
+
+          if (result.requiereSeleccionConjunto) {
+            this.conjuntos.set(result.conjuntos ?? []);
+            this.conjuntoSeleccionadoId.set('');
+            return;
+          }
+
+          if (!result.token) {
+            this.error.set('La API no devolvió un token válido.');
+            return;
+          }
+
+          void this.router.navigateByUrl('/admin/dashboard');
+        },
+        error: (error: Error) => {
+          this.submitting.set(false);
+          this.error.set(
+            error.message || 'No fue posible iniciar sesión.'
+          );
+        }
+      });
+  }
+}

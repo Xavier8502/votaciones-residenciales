@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { from, Observable, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { AuthSession, LoginCredentials } from '../../domain/auth/auth-session';
@@ -14,20 +14,28 @@ export class LoginCommand implements Command<AuthSession> {
 }
 
 @Injectable({ providedIn: 'root' })
-export class LoginCommandHandler implements CommandHandler<LoginCommand, AuthSession> {
+export class LoginCommandHandler
+  implements CommandHandler<LoginCommand, AuthSession> {
   private readonly authRepository = inject(AuthRepository);
   private readonly session = inject(AuthSessionService);
 
   execute(command: LoginCommand): Observable<AuthSession> {
     return from(this.authRepository.login(command.credentials)).pipe(
       map((result) => {
-        if (result.rol !== 'AdminConjunto') {
-          this.session.clear();
-          throw new Error('Esta interfaz está reservada para administradores del conjunto.');
+        if (!result.token) {
+          throw new Error('La API no devolvió un token de autenticación.');
         }
 
-        this.session.setSession(result);
+        if (!['AdminConjunto', 'SuperAdmin'].includes(result.rol)) {
+          throw new Error('Este usuario no tiene acceso al portal administrativo.');
+        }
+
         return result;
+      }),
+      tap((result) => this.session.setSession(result)),
+      catchError((error) => {
+        this.session.clear();
+        return throwError(() => error);
       })
     );
   }

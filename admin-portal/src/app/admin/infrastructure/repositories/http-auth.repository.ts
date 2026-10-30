@@ -7,10 +7,10 @@ import { AuthSession, LoginCredentials } from '../../domain/auth/auth-session';
 import { AuthRepository } from '../../domain/repositories/auth.repository';
 
 interface LoginResponseDto {
-  token: string;
+  token: string | null;
   nombreCompleto: string;
   rol: string;
-  conjuntoId: string;
+  conjuntoId: string | null;
   residenteId: string;
 }
 
@@ -22,10 +22,10 @@ export class HttpAuthRepository extends AuthRepository {
     return firstValueFrom(
       this.http.post<LoginResponseDto>('/api/auth/login', credentials).pipe(
         map((response) => ({
-          token: response.token,
+          token: response.token ?? '',
           nombreCompleto: response.nombreCompleto,
-          rol: response.rol,
-          conjuntoId: response.conjuntoId,
+          rol: response.rol as AuthSession['rol'],
+          conjuntoId: response.conjuntoId ?? '',
           actorId: response.residenteId
         }))
       )

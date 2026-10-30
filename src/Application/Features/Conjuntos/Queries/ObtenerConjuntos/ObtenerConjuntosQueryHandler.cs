@@ -33,7 +33,8 @@ namespace VotacionesResidenciales.Application.Features.Conjuntos.Queries.Obtener
                     c.Ciudad,
                     c.Telefono,
                     c.Email,
-                    c.CreadoEn))
+                    c.CreadoEn,
+                    c.Activo))
                 .ToList();
 
             return Result<List<ConjuntoResumenDto>>.Exito(resultado);

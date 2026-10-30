@@ -1,3 +1,4 @@
+
 <div class="admin-shell" [class.compact]="compact()">
   <aside class="admin-sidebar panel">
     <div class="sidebar-top">
@@ -13,14 +14,15 @@
       <div class="brand-block" [class.hidden]="compact()">
         <span class="status-chip" data-tone="primary">
           <svg lucideBadgeCheck size="14"></svg>
-          Admin
+          {{ isSuperAdmin() ? 'SuperAdmin' : 'Admin' }}
         </span>
+
         <strong>Votaciones Residenciales</strong>
       </div>
     </div>
 
     <nav class="sidebar-nav">
-      @for (item of navigation; track item.route) {
+      @for (item of visibleNavigation(); track item.route) {
         <a
           class="app-nav-link"
           [routerLink]="item.route"
@@ -44,18 +46,27 @@
               <svg lucideVote size="18"></svg>
             }
           }
-          <span [class.hidden]="compact()">{{ item.label }}</span>
+
+          <span [class.hidden]="compact()">
+            {{ item.label }}
+          </span>
         </a>
       }
     </nav>
 
     <div class="sidebar-footer" [class.compact]="compact()">
-      <div class="sidebar-session">
+      <div class="sidebar-session" [class.hidden]="compact()">
         <p>{{ displayName() }}</p>
         <span>Rol {{ session()?.rol }}</span>
       </div>
 
-      <button class="app-button ghost" type="button" (click)="logout()">
+      <button
+        class="app-button ghost"
+        type="button"
+        (click)="logout()"
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
         <svg lucideLogOut size="16"></svg>
         <span [class.hidden]="compact()">Salir</span>
       </button>
@@ -64,14 +75,36 @@
 
   <main class="admin-main">
     <header class="admin-topbar">
-      <div>
-        <strong>Operación administrativa</strong>
-        <p class="muted">Control centralizado de conjuntos, residentes, inmuebles y votaciones.</p>
+      <div class="admin-topbar-heading">
+        <strong>
+          {{ isSuperAdmin() ? 'Administración global' : 'Operación administrativa' }}
+        </strong>
+
+        <p class="muted">
+          {{
+            isSuperAdmin()
+              ? 'Gestiona las asignaciones de conjuntos residenciales.'
+              : 'Control centralizado de conjuntos, residentes, inmuebles y votaciones.'
+          }}
+        </p>
       </div>
 
-      <div class="status-chip" data-tone="support">
-        <svg lucideDoorOpen size="14"></svg>
-        Sesión activa
+      <div class="admin-topbar-actions">
+        <div class="status-chip" data-tone="support">
+          <svg lucideDoorOpen size="14"></svg>
+          Sesión activa
+        </div>
+
+        <button
+          class="app-button ghost logout-button"
+          type="button"
+          (click)="logout()"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+        >
+          <svg lucideLogOut size="16"></svg>
+          <span>Cerrar sesión</span>
+        </button>
       </div>
     </header>
 

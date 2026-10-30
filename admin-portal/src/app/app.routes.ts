@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { superAdminGuard } from './core/guards/super-admin.guard';
 
 export const routes: Routes = [
   {
@@ -52,6 +53,28 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./admin/presentation/votaciones/votaciones-page.component').then(
             (m) => m.VotacionesPageComponent
+          )
+      }
+    ]
+  },  
+  {
+    path: 'superadmin',
+    canActivate: [authGuard, superAdminGuard],
+    loadComponent: () =>
+      import('./admin/presentation/layout/admin-shell.component').then(
+        (m) => m.AdminShellComponent
+      ),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'asignaciones'
+      },
+      {
+        path: 'asignaciones',
+        loadComponent: () =>
+          import('./admin/presentation/superadmin/asignaciones-page.component').then(
+            (m) => m.AsignacionesPageComponent
           )
       }
     ]
