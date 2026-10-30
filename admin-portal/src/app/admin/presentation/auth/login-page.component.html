@@ -1,3 +1,4 @@
+
 <div class="login-layout">
   <section class="login-intro">
     <div class="login-brand">
@@ -32,11 +33,17 @@
   </section>
 
   <section class="login-panel">
-    <form class="panel login-form" [formGroup]="form" (ngSubmit)="submit()">
+    <form
+      class="panel login-form"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+    >
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Iniciar sesión</h2>
-          <p class="page-subtitle">Usa las credenciales del administrador seed para comenzar.</p>
+          <p class="page-subtitle">
+            Usa las credenciales del administrador seed para comenzar.
+          </p>
         </div>
       </div>
 
@@ -47,21 +54,70 @@
 
         <div class="field-group">
           <label class="field-label" for="cedula">Cédula</label>
-          <input id="cedula" class="app-input" type="text" formControlName="cedula" />
+          <input
+            id="cedula"
+            class="app-input"
+            type="text"
+            formControlName="cedula"
+            [readonly]="requiereSeleccionConjunto()"
+          />
         </div>
 
         <div class="field-group">
           <label class="field-label" for="pin">PIN</label>
-          <input id="pin" class="app-input" type="password" formControlName="pin" />
+          <input
+            id="pin"
+            class="app-input"
+            type="password"
+            formControlName="pin"
+            [readonly]="requiereSeleccionConjunto()"
+          />
         </div>
 
-        <div class="help-text">
-          Seed sugerido: <strong>9000000001</strong> / <strong>1234</strong>
-        </div>
+        @if (requiereSeleccionConjunto()) {
+          <div class="status-banner">
+            Bienvenido, {{ nombreAdministrador() }}.
+            Selecciona el conjunto al que deseas ingresar.
+          </div>
 
-        <button class="app-button primary" type="submit" [disabled]="submitting()">
+          <div class="field-group">
+            <label class="field-label" for="conjuntoId">
+              Conjunto residencial
+            </label>
+            <select
+              id="conjuntoId"
+              class="app-input"
+              formControlName="conjuntoId"
+            >
+              <option value="">Selecciona un conjunto</option>
+              @for (conjunto of conjuntos(); track conjunto.id) {
+                <option [value]="conjunto.id">
+                  {{ conjunto.nombre }}
+                </option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="help-text">
+            Seed sugerido:
+            <strong>9000000001</strong> /
+            <strong>1234</strong>
+          </div>
+        }
+
+        <button
+          class="app-button primary"
+          type="submit"
+          [disabled]="submitting()"
+        >
           <svg lucideArrowRight size="16"></svg>
-          {{ submitting() ? 'Entrando...' : 'Entrar al portal' }}
+          {{
+            submitting()
+              ? 'Validando...'
+              : requiereSeleccionConjunto()
+                ? 'Ingresar al conjunto'
+                : 'Entrar al portal'
+          }}
         </button>
       </div>
     </form>

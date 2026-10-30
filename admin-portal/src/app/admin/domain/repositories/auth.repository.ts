@@ -1,5 +1,5 @@
-import { AuthSession, LoginCredentials } from '../auth/auth-session';
+import { AuthSession, LoginCredentials, LoginResult } from '../auth/auth-session';
 
 export abstract class AuthRepository {
-  abstract login(credentials: LoginCredentials): Promise<AuthSession>;
+  abstract login(credentials: LoginCredentials): Promise<LoginResult>;
 }

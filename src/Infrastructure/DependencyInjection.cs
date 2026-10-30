@@ -33,6 +33,7 @@ namespace VotacionesResidenciales.Infrastructure
             services.AddScoped<IVotacionRepository, VotacionRepository>();
             services.AddScoped<IVotoRepository, VotoRepository>();
             services.AddScoped<IAdminConjuntoRepository, AdminConjuntoRepository>();
+            services.AddScoped<IDashboardReadRepository, DashboardReadRepository>();
 
             // ── UnitOfWork ─────────────────────────────────────
             services.AddScoped<IUnitOfWork, UnitOfWork>();
