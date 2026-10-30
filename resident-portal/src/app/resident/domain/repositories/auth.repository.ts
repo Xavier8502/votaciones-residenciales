@@ -1,12 +1,6 @@
-import { Observable } from 'rxjs';
 
-import { AuthSession } from '../auth/auth-session';
-
-export interface LoginDraft {
-  cedula: string;
-  pin: string;
-}
+import { LoginCredentials, LoginResult } from '../auth/auth-session';
 
 export abstract class AuthRepository {
-  abstract login(draft: LoginDraft): Observable<AuthSession>;
+  abstract login(credentials: LoginCredentials): Promise<LoginResult>;
 }

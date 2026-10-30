@@ -11,6 +11,10 @@ export const adminGuard: CanActivateFn = () => {
     return true;
   }
 
+  if (auth.isSuperAdmin()) {
+    return router.createUrlTree(['/superadmin/asignaciones']);
+  }
+
   auth.clear();
   return router.createUrlTree(['/login']);
 };

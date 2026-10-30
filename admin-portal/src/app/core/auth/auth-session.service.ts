@@ -6,12 +6,21 @@ const STORAGE_KEY = 'votaciones.admin.session';
 
 @Injectable({ providedIn: 'root' })
 export class AuthSessionService {
-  private readonly sessionState = signal<AuthSession | null>(this.readFromStorage());
+  private readonly sessionState = signal<AuthSession | null>(
+    this.readFromStorage()
+  );
 
   readonly session = this.sessionState.asReadonly();
   readonly isAuthenticated = computed(() => !!this.sessionState()?.token);
-  readonly isAdmin = computed(() => this.sessionState()?.rol === 'AdminConjunto');
-  readonly currentConjuntoId = computed(() => this.sessionState()?.conjuntoId ?? null);
+  readonly isAdmin = computed(
+    () => this.sessionState()?.rol === 'AdminConjunto'
+  );
+  readonly isSuperAdmin = computed(
+    () => this.sessionState()?.rol === 'SuperAdmin'
+  );
+  readonly currentConjuntoId = computed(
+    () => this.sessionState()?.conjuntoId ?? null
+  );
 
   setSession(session: AuthSession): void {
     this.sessionState.set(session);
@@ -29,12 +38,23 @@ export class AuthSessionService {
 
   private readFromStorage(): AuthSession | null {
     const raw = localStorage.getItem(STORAGE_KEY);
+
     if (!raw) {
       return null;
     }
 
     try {
-      return JSON.parse(raw) as AuthSession;
+      const session = JSON.parse(raw) as AuthSession;
+
+      if (
+        !session.token ||
+        !['AdminConjunto', 'SuperAdmin'].includes(session.rol)
+      ) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+
+      return session;
     } catch {
       localStorage.removeItem(STORAGE_KEY);
       return null;

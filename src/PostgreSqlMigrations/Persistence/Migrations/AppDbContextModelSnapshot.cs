@@ -41,9 +41,6 @@ namespace VotacionesResidenciales.Infrastructure.Persistence.Migrations
                         .HasMaxLength(12)
                         .HasColumnType("character varying(12)");
 
-                    b.Property<Guid>("ConjuntoId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreadoEn")
                         .HasColumnType("timestamp with time zone");
 
@@ -73,9 +70,38 @@ namespace VotacionesResidenciales.Infrastructure.Persistence.Migrations
                     b.HasIndex("Cedula")
                         .IsUnique();
 
+                    b.ToTable("AdminesConjunto", (string)null);
+                });
+
+            modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.AdminConjuntoAsignacion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("AdminConjuntoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ConjuntoId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ModificadoEn")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
                     b.HasIndex("ConjuntoId");
 
-                    b.ToTable("AdminesConjunto", (string)null);
+                    b.HasIndex("AdminConjuntoId", "ConjuntoId")
+                        .IsUnique();
+
+                    b.ToTable("AdminConjuntoAsignaciones", (string)null);
                 });
 
             modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.Conjunto", b =>
@@ -438,13 +464,21 @@ namespace VotacionesResidenciales.Infrastructure.Persistence.Migrations
                     b.ToTable("Votos", (string)null);
                 });
 
-            modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.AdminConjunto", b =>
+            modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.AdminConjuntoAsignacion", b =>
                 {
+                    b.HasOne("VotacionesResidenciales.Domain.Entities.AdminConjunto", "AdminConjunto")
+                        .WithMany("Asignaciones")
+                        .HasForeignKey("AdminConjuntoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("VotacionesResidenciales.Domain.Entities.Conjunto", "Conjunto")
                         .WithMany()
                         .HasForeignKey("ConjuntoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AdminConjunto");
 
                     b.Navigation("Conjunto");
                 });
@@ -505,6 +539,11 @@ namespace VotacionesResidenciales.Infrastructure.Persistence.Migrations
                         .HasForeignKey("VotacionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.AdminConjunto", b =>
+                {
+                    b.Navigation("Asignaciones");
                 });
 
             modelBuilder.Entity("VotacionesResidenciales.Domain.Entities.Conjunto", b =>

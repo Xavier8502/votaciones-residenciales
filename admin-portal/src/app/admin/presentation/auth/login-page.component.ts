@@ -36,12 +36,18 @@ export class LoginPageComponent {
   readonly error = signal('');
 
   readonly form = this.fb.nonNullable.group({
-    cedula: ['9000000001', [Validators.required, Validators.minLength(5)]],
-    pin: ['1234', [Validators.required, Validators.minLength(4), Validators.maxLength(6)]]
+    cedula: ['', [Validators.required, Validators.minLength(5)]],
+    pin: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(6)]]
   });
 
   constructor() {
-    if (this.session.isAdmin()) {
+    this.redirectByRole();
+  }
+
+  private redirectByRole(): void {
+    if (this.session.isSuperAdmin()) {
+      void this.router.navigateByUrl('/superadmin/asignaciones');
+    } else if (this.session.isAdmin()) {
       void this.router.navigateByUrl('/admin/dashboard');
     }
   }
@@ -60,7 +66,14 @@ export class LoginPageComponent {
       .subscribe({
         next: async () => {
           this.submitting.set(false);
-          await this.router.navigateByUrl('/admin/dashboard');
+
+          if (this.session.isSuperAdmin()) {
+            await this.router.navigateByUrl('/superadmin/asignaciones');
+          } else if (this.session.isAdmin()) {
+            await this.router.navigateByUrl('/admin/dashboard');
+          } else {
+            this.error.set('No se pudo determinar el rol del usuario.');
+          }
         },
         error: (error: Error) => {
           this.submitting.set(false);
@@ -69,3 +82,4 @@ export class LoginPageComponent {
       });
   }
 }
+

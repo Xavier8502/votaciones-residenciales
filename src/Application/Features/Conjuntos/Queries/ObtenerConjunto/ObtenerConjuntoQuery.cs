@@ -19,6 +19,8 @@ namespace VotacionesResidenciales.Application.Features.Conjuntos.Queries.Obtener
         string? Email,
         int TotalInmuebles,
         decimal TotalCoeficientes,
-        DateTime CreadoEn
+        DateTime CreadoEn,
+        bool Activo
+
     );
 }

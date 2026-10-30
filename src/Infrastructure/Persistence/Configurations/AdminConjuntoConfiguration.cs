@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using VotacionesResidenciales.Domain.Entities;
 
 namespace VotacionesResidenciales.Infrastructure.Persistence.Configurations
 {
     public class AdminConjuntoConfiguration
-    : IEntityTypeConfiguration<AdminConjunto>
+        : IEntityTypeConfiguration<AdminConjunto>
     {
         public void Configure(EntityTypeBuilder<AdminConjunto> builder)
         {
@@ -43,10 +41,14 @@ namespace VotacionesResidenciales.Infrastructure.Persistence.Configurations
 
             builder.Ignore(a => a.NombreCompleto);
 
-            builder.HasOne(a => a.Conjunto)
-                .WithMany()
-                .HasForeignKey(a => a.ConjuntoId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(a => a.Asignaciones)
+                .WithOne(asignacion => asignacion.AdminConjunto)
+                .HasForeignKey(asignacion => asignacion.AdminConjuntoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Navigation(a => a.Asignaciones)
+                .HasField("_asignaciones")
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 }

@@ -1,13 +1,12 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
-using System.Text;
 using VotacionesResidenciales.Domain.Common;
 
 namespace VotacionesResidenciales.Domain.Entities
 {
     public class AdminConjunto : BaseEntity
     {
-        public Guid ConjuntoId { get; private set; }
         public string Cedula { get; private set; } = string.Empty;
         public string Nombre { get; private set; } = string.Empty;
         public string Apellido { get; private set; } = string.Empty;
@@ -15,27 +14,39 @@ namespace VotacionesResidenciales.Domain.Entities
         public string? Telefono { get; private set; }
         public string? Email { get; private set; }
 
-        public Conjunto? Conjunto { get; private set; }
+        private readonly List<AdminConjuntoAsignacion> _asignaciones = [];
+
+        public IReadOnlyCollection<AdminConjuntoAsignacion> Asignaciones =>
+            _asignaciones.AsReadOnly();
 
         private AdminConjunto() { }
 
         public static AdminConjunto Crear(
-            Guid conjuntoId,
             string cedula,
             string nombre,
             string apellido,
             string pinHash)
         {
             var ced = ValueObjects.Cedula.Crear(cedula);
-            
+
             return new AdminConjunto
             {
-                ConjuntoId = conjuntoId,
                 Cedula = ced.Valor,
                 Nombre = nombre.Trim(),
                 Apellido = apellido.Trim(),
                 PinHash = pinHash
             };
+        }
+
+        public void AgregarAsignacion(Conjunto conjunto)
+        {
+            ArgumentNullException.ThrowIfNull(conjunto);
+
+            if (_asignaciones.Exists(a => a.ConjuntoId == conjunto.Id))
+                return;
+
+            _asignaciones.Add(
+                AdminConjuntoAsignacion.Crear(Id, conjunto.Id));
         }
 
         public void ActualizarPin(string nuevoPinHash)

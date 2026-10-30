@@ -20,6 +20,7 @@ namespace VotacionesResidenciales.Infrastructure.Persistence
         public DbSet<Voto> Votos => Set<Voto>();
         public DbSet<DetalleVoto> DetallesVoto => Set<DetalleVoto>();
         public DbSet<AdminConjunto> AdminesConjunto => Set<AdminConjunto>();
+        public DbSet<AdminConjuntoAsignacion> AdminConjuntoAsignaciones => Set<AdminConjuntoAsignacion>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

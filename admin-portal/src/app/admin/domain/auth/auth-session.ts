@@ -1,7 +1,9 @@
+export type UserRole = 'AdminConjunto' | 'SuperAdmin';
+
 export interface AuthSession {
   token: string;
   nombreCompleto: string;
-  rol: string;
+  rol: UserRole;
   conjuntoId: string;
   actorId: string;
 }
