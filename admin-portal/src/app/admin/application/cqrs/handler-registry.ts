@@ -1,5 +1,5 @@
 import { Type } from '@angular/core';
-
+import { GetDashboardQueryHandler } from '../dashboard/dashboard.cqrs';
 import { LoginCommandHandler } from '../auth/auth.cqrs';
 import {
   CreateConjuntoCommandHandler,
@@ -44,5 +44,6 @@ export const QUERY_HANDLER_REGISTRY: Record<string, Type<unknown>> = {
   '[Residentes] Get By Conjunto': GetResidentesQueryHandler,
   '[Votaciones] Get By Conjunto': GetVotacionesQueryHandler,
   '[Votaciones] Get Detail': GetVotacionDetailQueryHandler,
-  '[Votaciones] Get Resultados': GetVotacionResultadosQueryHandler
+  '[Votaciones] Get Resultados': GetVotacionResultadosQueryHandler,
+  '[Dashboard] Get All': GetDashboardQueryHandler,
 };

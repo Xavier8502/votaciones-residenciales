@@ -10,6 +10,8 @@ import { HttpConjuntoRepository } from './http-conjunto.repository';
 import { HttpInmuebleRepository } from './http-inmueble.repository';
 import { HttpResidenteRepository } from './http-residente.repository';
 import { HttpVotacionRepository } from './http-votacion.repository';
+import { DashboardRepository } from '../../domain/repositories/dashboard.repository';
+import { HttpDashboardRepository } from './http-dashboard.repository';
 
 export function provideAdminRepositories(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -17,6 +19,7 @@ export function provideAdminRepositories(): EnvironmentProviders {
     { provide: ConjuntoRepository, useClass: HttpConjuntoRepository },
     { provide: InmuebleRepository, useClass: HttpInmuebleRepository },
     { provide: ResidenteRepository, useClass: HttpResidenteRepository },
-    { provide: VotacionRepository, useClass: HttpVotacionRepository }
+    { provide: VotacionRepository, useClass: HttpVotacionRepository },
+    { provide: DashboardRepository, useClass: HttpDashboardRepository },
   ]);
 }

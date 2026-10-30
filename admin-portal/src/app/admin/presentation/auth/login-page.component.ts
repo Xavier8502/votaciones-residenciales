@@ -12,6 +12,11 @@ import {
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { LoginCommand } from '../../application/auth/auth.cqrs';
 import { CommandBus } from '../../application/cqrs/command-bus';
+import {
+  ConjuntoLoginOption,
+  LoginResult
+} from '../../domain/auth/auth-session';
+
 
 @Component({
   selector: 'app-login-page',
@@ -34,10 +39,14 @@ export class LoginPageComponent {
 
   readonly submitting = signal(false);
   readonly error = signal('');
+  readonly conjuntos = signal<ConjuntoLoginOption[]>([]);
+  readonly requiereSeleccionConjunto = signal(false);
+  readonly nombreAdministrador = signal('');
 
   readonly form = this.fb.nonNullable.group({
     cedula: ['', [Validators.required, Validators.minLength(5)]],
-    pin: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(6)]]
+    pin: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(6)]],
+    conjuntoId: ['']
   });
 
   constructor() {
@@ -58,14 +67,37 @@ export class LoginPageComponent {
       return;
     }
 
+    if (
+      this.requiereSeleccionConjunto() &&
+      !this.form.controls.conjuntoId.value
+    ) {
+      this.error.set('Selecciona el conjunto con el que deseas ingresar.');
+      return;
+    }
+
     this.submitting.set(true);
     this.error.set('');
 
+    const credentials = this.form.getRawValue();
+
     this.commandBus
-      .execute(new LoginCommand(this.form.getRawValue()))
+      .execute<LoginResult>(new LoginCommand({
+        cedula: credentials.cedula,
+        pin: credentials.pin,
+        ...(credentials.conjuntoId
+          ? { conjuntoId: credentials.conjuntoId }
+          : {})
+      }))
       .subscribe({
-        next: async () => {
+        next: async (result) => {
           this.submitting.set(false);
+
+          if (result.requiereSeleccionConjunto && !result.token) {
+            this.conjuntos.set(result.conjuntos);
+            this.nombreAdministrador.set(result.nombreCompleto);
+            this.requiereSeleccionConjunto.set(true);
+            return;
+          }
 
           if (this.session.isSuperAdmin()) {
             await this.router.navigateByUrl('/superadmin/asignaciones');
@@ -82,4 +114,3 @@ export class LoginPageComponent {
       });
   }
 }
-
